@@ -1,20 +1,46 @@
-import * as http from 'http';
+import express from 'express';
 
-/** DEFINITIONS */
-const Port = 3000;
+const port = 3000;
+const app = express();
 
-function requestHandler(request: http.IncomingMessage, response: http.ServerResponse) {
-  console.log(request.url);
-  response.end(format('Basic Node.js server using http.' + '<br>' + 'Request URL: ' + request.url));
-}
+app.use(express.json());
 
-function myListener(): void {
-  console.log(`Server is listening on ${Port}.`)
+app.listen(port, () => {
+  console.log(`Server is listening on ${port} with Express.`);
+});
+
+app.all("*", (request, _response, next) => {
+  console.log(request.path);
+  next();
+})
+
+app.get('/', (request, response) => {
+  response.send(format('It\'s...a Node.js Server with Express!<br>') + requestInfo(request));
+});
+
+app.route("/*")
+  .get((request, response) => {
+    response.send(requestInfo(request));
+  })
+
+  .post(function (request, response) {
+    response.send(requestInfo(request));
+  })
+
+  .put(function (request, response) {
+    response.send(requestInfo(request));
+  })
+
+  .delete(function (request, response) {
+    response.send(requestInfo(request));
+  });
+
+function requestInfo(request: { 'method': string, 'url': string, 'body': string}): string {
+  return format(`Got a ${request.method} request.` + '<br>' 
+    + 'URL: ' + request.url + '<br>' 
+    + JSON.stringify(request.body, undefined, 4));
 }
 
 function format(str: string): string {
   return '<pre>' + str + '</pre>';
 }
-
-/** EXECUTION */
-http.createServer(requestHandler)?.listen(Port, myListener);
